@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Upload Screenshots</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; background: #0a0e17; color: #e0e6ed; padding: 2rem; max-width: 800px; margin: 0 auto; }
+    h1 { margin-bottom: 1rem; }
+    .slot { background: #111827; border: 2px dashed #334155; border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem; text-align: center; cursor: pointer; transition: border-color 0.2s; }
+    .slot:hover { border-color: #3b82f6; }
+    .slot.done { border-color: #34d399; border-style: solid; }
+    .slot img { max-width: 100%; max-height: 200px; border-radius: 8px; margin-top: 0.5rem; }
+    .slot input { display: none; }
+    .label { font-weight: 600; color: #3b82f6; }
+    .desc { font-size: 0.85rem; color: #64748b; margin-top: 0.25rem; }
+    button { background: #3b82f6; color: white; border: none; padding: 1rem 2rem; border-radius: 8px; font-size: 1.1rem; cursor: pointer; margin-top: 1rem; }
+    button:hover { background: #2563eb; }
+    #status { margin-top: 1rem; font-size: 0.9rem; color: #34d399; }
+  </style>
+</head>
+<body>
+  <h1>📸 Upload Presentation Screenshots</h1>
+  <p style="color:#64748b; margin-bottom:1.5rem;">Click each slot and select the matching screenshot. Then hit Save.</p>
+
+  <div class="slot" onclick="this.querySelector('input').click()">
+    <div class="label">Slide 4 — 01-prompt.png</div>
+    <div class="desc">The "Let's start with something simple" user message</div>
+    <input type="file" accept="image/*" data-name="01-prompt.png" onchange="preview(this)">
+  </div>
+
+  <div class="slot" onclick="this.querySelector('input').click()">
+    <div class="label">Slide 6 — 02-results.png</div>
+    <div class="desc">3 agents results: HN + Security + Poem combined view</div>
+    <input type="file" accept="image/*" data-name="02-results.png" onchange="preview(this)">
+  </div>
+
+  <div class="slot" onclick="this.querySelector('input').click()">
+    <div class="label">Slide 7 — 03-report-card.png</div>
+    <div class="desc">The security report card with grades (A-, B+, C+, D, A, A, A)</div>
+    <input type="file" accept="image/*" data-name="03-report-card.png" onchange="preview(this)">
+  </div>
+
+  <div class="slot" onclick="this.querySelector('input').click()">
+    <div class="label">Slide 8 — 04-remediation.png</div>
+    <div class="desc">Phase 1 remediation table + Phase 2 cron setup</div>
+    <input type="file" accept="image/*" data-name="04-remediation.png" onchange="preview(this)">
+  </div>
+
+  <div class="slot" onclick="this.querySelector('input').click()">
+    <div class="label">Slide 5 — 05-subagents.png</div>
+    <div class="desc">The "3 sub-agents" proposal message (4GB RAM, Claude Opus...)</div>
+    <input type="file" accept="image/*" data-name="05-subagents.png" onchange="preview(this)">
+  </div>
+
+  <button onclick="saveAll()">💾 Save All</button>
+  <div id="status"></div>
+
+  <script>
+    function preview(input) {
+      const slot = input.closest('.slot');
+      const existing = slot.querySelector('img');
+      if (existing) existing.remove();
+      if (input.files[0]) {
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(input.files[0]);
+        slot.appendChild(img);
+        slot.classList.add('done');
+      }
+    }
+
+    async function saveAll() {
+      const inputs = document.querySelectorAll('input[type=file]');
+      let uploaded = 0;
+      for (const input of inputs) {
+        if (!input.files[0]) continue;
+        const formData = new FormData();
+        formData.append('file', input.files[0]);
+        formData.append('name', input.dataset.name);
+        try {
+          const res = await fetch('/slides/img/upload', { method: 'POST', body: formData });
+          if (res.ok) uploaded++;
+        } catch(e) { console.error(e); }
+      }
+      document.getElementById('status').textContent = `✅ Uploaded ${uploaded} image(s). Refresh the slides to see them!`;
+    }
+  </script>
+</body>
+</html>

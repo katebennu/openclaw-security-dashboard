@@ -13,6 +13,38 @@ if (!fs.existsSync(DATA_FILE)) {
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 
+// Serve presentation static files
+const PRESENTATION_DIR = path.join(__dirname, '..', 'presentation');
+app.use('/slides', express.static(PRESENTATION_DIR));
+
+// Image upload for slides
+app.post('/slides/img/upload', (req, res) => {
+  // Simple raw body upload
+  const chunks = [];
+  req.on('data', c => chunks.push(c));
+  req.on('end', () => {
+    try {
+      const boundary = req.headers['content-type'].split('boundary=')[1];
+      const body = Buffer.concat(chunks);
+      const bodyStr = body.toString('latin1');
+      // Extract filename from Content-Disposition
+      const nameMatch = bodyStr.match(/name="name"\r\n\r\n([^\r]+)/);
+      const filename = nameMatch ? nameMatch[1].trim() : 'upload.png';
+      // Extract file data
+      const fileMatch = bodyStr.match(/name="file"[\s\S]*?\r\n\r\n/);
+      if (!fileMatch) return res.status(400).json({error: 'no file'});
+      const dataStart = bodyStr.indexOf(fileMatch[0]) + fileMatch[0].length;
+      const endBoundary = bodyStr.indexOf('--' + boundary, dataStart);
+      const fileData = body.slice(dataStart, endBoundary - 2);
+      const imgDir = path.join(PRESENTATION_DIR, 'img');
+      if (!fs.existsSync(imgDir)) fs.mkdirSync(imgDir, {recursive: true});
+      fs.writeFileSync(path.join(imgDir, filename), fileData);
+      console.log(`Uploaded: ${filename} (${fileData.length} bytes)`);
+      res.json({ok: true, filename});
+    } catch(e) { res.status(500).json({error: e.message}); }
+  });
+});
+
 // --- Grade Parsing ---
 
 const GRADE_VALUES = { 'A+': 4.3, 'A': 4.0, 'A-': 3.7, 'B+': 3.3, 'B': 3.0, 'B-': 2.7, 'C+': 2.3, 'C': 2.0, 'C-': 1.7, 'D+': 1.3, 'D': 1.0, 'D-': 0.7, 'F': 0.0 };
