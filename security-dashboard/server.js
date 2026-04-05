@@ -420,6 +420,10 @@ function renderDashboard(reports) {
     .report-body-inner ul { margin: 0.3rem 0 0.3rem 1.2rem; }
     .report-body-inner li { margin: 0.15rem 0; }
     .report-body-inner hr { border: none; border-top: 1px solid #1e2a3a; margin: 0.8rem 0; }
+    .report-body-inner table { width: 100%; border-collapse: collapse; margin: 0.5rem 0; font-size: 0.82rem; }
+    .report-body-inner th { text-align: left; padding: 0.45rem 0.6rem; background: #1e293b; color: #94a3b8; font-weight: 600; border-bottom: 2px solid #334155; }
+    .report-body-inner td { padding: 0.4rem 0.6rem; border-bottom: 1px solid #1e2a3a; color: #cbd5e1; }
+    .report-body-inner tr:hover td { background: rgba(59,130,246,0.05); }
 
     .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #e0e6ed; }
     .empty-state { text-align: center; padding: 4rem 2rem; color: #475569; }
@@ -608,6 +612,22 @@ function renderMarkdown(raw) {
 
   // Inline code
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Tables: detect markdown table blocks and convert
+  html = html.replace(/((?:^\|.+\|$\n?){2,})/gm, (tableBlock) => {
+    const rows = tableBlock.trim().split('\n').filter(r => r.trim());
+    if (rows.length < 2) return tableBlock;
+    let out = '<table>';
+    rows.forEach((row, i) => {
+      // Skip separator row (|---|---|)
+      if (/^\|[\s:\-|]+\|$/.test(row)) return;
+      const cells = row.split('|').filter((c, ci, arr) => ci > 0 && ci < arr.length - 1);
+      const tag = i === 0 ? 'th' : 'td';
+      out += '<tr>' + cells.map(c => `<${tag}>${c.trim()}</${tag}>`).join('') + '</tr>';
+    });
+    out += '</table>';
+    return out;
+  });
 
   // Bullet lists
   html = html.replace(/^[\s]*[-•] (.+)$/gm, '<li>$1</li>');
