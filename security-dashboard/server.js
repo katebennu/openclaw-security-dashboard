@@ -272,7 +272,7 @@ function renderDashboard(reports) {
         </div>
         ${gradeChart}
         <div class="report-body">
-          <pre>${escapeHtml(content)}</pre>
+          <div class="report-body-inner">${renderMarkdown(content)}</div>
         </div>
       </div>`;
   }).join('\n');
@@ -410,7 +410,16 @@ function renderDashboard(reports) {
     .report-body { max-height: 0; overflow: hidden; transition: max-height 0.4s ease; }
     .report-card.expanded .report-body { max-height: 3000px; }
     .report-card.expanded .toggle-btn { transform: rotate(180deg); }
-    .report-body pre { padding: 1.25rem; white-space: pre-wrap; word-break: break-word; font-family: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace; font-size: 0.82rem; line-height: 1.6; color: #94a3b8; }
+    .report-body-inner { padding: 1.25rem; font-size: 0.85rem; line-height: 1.7; color: #cbd5e1; }
+    .report-body-inner h2 { font-size: 1.05rem; color: #e0e6ed; margin: 1rem 0 0.4rem; font-weight: 700; }
+    .report-body-inner h3 { font-size: 0.95rem; color: #e0e6ed; margin: 0.8rem 0 0.3rem; font-weight: 600; }
+    .report-body-inner h4 { font-size: 0.85rem; color: #94a3b8; margin: 0.6rem 0 0.2rem; font-weight: 600; }
+    .report-body-inner p { margin: 0.4rem 0; }
+    .report-body-inner strong { color: #e0e6ed; }
+    .report-body-inner code { background: #1e293b; padding: 0.15rem 0.4rem; border-radius: 4px; font-family: 'JetBrains Mono', 'Fira Code', monospace; font-size: 0.8rem; color: #60a5fa; }
+    .report-body-inner ul { margin: 0.3rem 0 0.3rem 1.2rem; }
+    .report-body-inner li { margin: 0.15rem 0; }
+    .report-body-inner hr { border: none; border-top: 1px solid #1e2a3a; margin: 0.8rem 0; }
 
     .section-title { font-size: 1.1rem; font-weight: 700; margin-bottom: 1rem; color: #e0e6ed; }
     .empty-state { text-align: center; padding: 4rem 2rem; color: #475569; }
@@ -578,6 +587,44 @@ function renderDashboard(reports) {
 
 function escapeHtml(str) {
   return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function renderMarkdown(raw) {
+  let html = escapeHtml(raw);
+
+  // Remove the ```attacks block (already parsed, no need to display)
+  html = html.replace(/```attacks[\s\S]*?```/g, '');
+
+  // Headers
+  html = html.replace(/^### (.+)$/gm, '<h4>$1</h4>');
+  html = html.replace(/^## (.+)$/gm, '<h3>$1</h3>');
+  html = html.replace(/^# (.+)$/gm, '<h2>$1</h2>');
+
+  // Horizontal rules
+  html = html.replace(/^---+$/gm, '<hr>');
+
+  // Bold
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  // Bullet lists
+  html = html.replace(/^[\s]*[-•] (.+)$/gm, '<li>$1</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // Checkmarks and warning emojis — leave as-is, they render fine
+
+  // Paragraphs: collapse multiple newlines, wrap remaining lines
+  html = html.replace(/\n{3,}/g, '\n\n');
+  html = html.split('\n\n').map(block => {
+    block = block.trim();
+    if (!block) return '';
+    if (/^<(h[1-6]|ul|li|hr|div)/.test(block)) return block;
+    return `<p>${block.replace(/\n/g, '<br>')}</p>`;
+  }).join('\n');
+
+  return html;
 }
 
 app.listen(PORT, '127.0.0.1', () => {
