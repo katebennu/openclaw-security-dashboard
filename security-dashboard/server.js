@@ -116,7 +116,22 @@ function gradeToPercent(grade) {
 
 app.post('/webhook', (req, res) => {
   try {
+    const status = req.body.status || 'unknown';
     const summary = req.body.summary || req.body.result || req.body.text || JSON.stringify(req.body);
+
+    // Reject error reports (API rate limits, failures, etc.)
+    if (status === 'error' || status === 'failed') {
+      console.log(`[${new Date().toISOString()}] Rejected ${status} report — not saving`);
+      return res.json({ ok: false, reason: 'error report rejected' });
+    }
+
+    // Reject reports that look like API errors
+    const errorPatterns = /rate limit|api error|quota exceeded|too many requests|529|503|overloaded/i;
+    if (errorPatterns.test(summary)) {
+      console.log(`[${new Date().toISOString()}] Rejected report — matched error pattern`);
+      return res.json({ ok: false, reason: 'error content rejected' });
+    }
+
     const grades = parseGrades(summary);
     const attacks = parseAttacks(summary);
 
