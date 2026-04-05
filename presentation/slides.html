@@ -353,7 +353,34 @@
       </ul>
     </div>
 
-    <!-- SLIDE 14: Live Demo -->
+    <!-- SLIDE 14: Future Work -->
+    <div class="slide left-align">
+      <h2>What's <span class="accent">Next</span></h2>
+      <h3 style="margin-bottom:1.5rem;">From inbound defense → full threat intelligence</h3>
+      <div class="two-col">
+        <div>
+          <p style="font-size:1rem; font-weight:700; color:var(--red); margin-bottom:0.6rem;">🔍 Outbound Traffic</p>
+          <ul style="font-size:1.05rem; line-height:2;">
+            <li><strong>Connection tracking</strong> — flag unknown outbound calls</li>
+            <li><strong>DNS monitoring</strong> — catch C2 callbacks, DGA domains</li>
+            <li><strong>Traffic anomalies</strong> — spikes, large uploads, odd hours</li>
+          </ul>
+        </div>
+        <div>
+          <p style="font-size:1rem; font-weight:700; color:var(--amber); margin-bottom:0.6rem;">🛡️ Exploit Detection</p>
+          <ul style="font-size:1.05rem; line-height:2;">
+            <li><strong>File integrity</strong> — hash /etc, /usr/bin, detect rootkits</li>
+            <li><strong>Process trees</strong> — spot shells spawned by web servers</li>
+            <li><strong>Log correlation</strong> — brute force + login + new traffic = breach</li>
+          </ul>
+        </div>
+      </div>
+      <div style="background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.25rem; margin-top:1.5rem;">
+        <p style="font-size:1.05rem; margin:0;">💡 <strong>The key difference:</strong> traditional tools have static rules. An agent <em>reasons</em> — it correlates signals and explains what's happening in plain English.</p>
+      </div>
+    </div>
+
+    <!-- SLIDE 15: Live Demo -->
     <div class="slide">
       <h1>🔴 <span class="accent">Live Demo</span></h1>
       <h3 style="margin-bottom:2rem;">Let's look at the dashboard and talk to the agent</h3>
@@ -391,7 +418,7 @@
 
   <!-- Navigation -->
   <div class="slide-nav">
-    <span class="slide-counter" id="counter">1 / 15</span>
+    <span class="slide-counter" id="counter">1 / 16</span>
     <button class="nav-btn" onclick="navigate(-1)">← Prev</button>
     <button class="nav-btn" onclick="navigate(1)">Next →</button>
   </div>
