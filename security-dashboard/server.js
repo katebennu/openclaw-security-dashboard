@@ -15,6 +15,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve presentation static files
 const PRESENTATION_DIR = path.join(__dirname, '..', 'presentation');
+app.get('/slides', (req, res) => res.sendFile(path.join(PRESENTATION_DIR, 'slides.html')));
+app.get('/slides/', (req, res) => res.sendFile(path.join(PRESENTATION_DIR, 'slides.html')));
 app.use('/slides', express.static(PRESENTATION_DIR));
 
 // Image upload for slides

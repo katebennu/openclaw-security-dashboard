@@ -425,6 +425,17 @@
     });
 
     showSlide(0);
+
+    // Gracefully handle missing images
+    document.querySelectorAll('img').forEach(img => {
+      img.onerror = function() {
+        this.style.display = 'none';
+        const placeholder = document.createElement('div');
+        placeholder.style.cssText = 'background:#111827;border:2px dashed #334155;border-radius:12px;padding:2rem;text-align:center;color:#475569;font-size:0.9rem;margin:1rem auto;max-width:600px;';
+        placeholder.textContent = '📷 Screenshot: ' + this.alt;
+        this.parentNode.insertBefore(placeholder, this.nextSibling);
+      };
+    });
   </script>
 </body>
 </html>
