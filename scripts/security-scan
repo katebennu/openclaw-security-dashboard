@@ -1,0 +1,41 @@
+#!/bin/bash
+# Security scan wrapper - runs all audit commands as the 'scanner' user
+# This script is the ONLY entry point for the security-scanner agent
+
+set -euo pipefail
+
+case "${1:-help}" in
+  ports)
+    su - scanner -c 'sudo /usr/bin/ss -tlnp'
+    ;;
+  ssh-config)
+    su - scanner -c 'cat /etc/ssh/sshd_config'
+    ;;
+  services)
+    su - scanner -c 'systemctl list-units --type=service --state=running'
+    ;;
+  disk)
+    su - scanner -c 'df -h'
+    ;;
+  fail2ban)
+    su - scanner -c 'sudo /usr/bin/fail2ban-client status sshd'
+    ;;
+  recent-attacks)
+    su - scanner -c "journalctl -u ssh --since '${2:-5 minutes ago}' --no-pager"
+    ;;
+  attack-count)
+    su - scanner -c "journalctl -u ssh --since '${2:-5 minutes ago}' --no-pager | grep -c 'Invalid user\|Failed password'" || echo "0"
+    ;;
+  top-ips)
+    su - scanner -c "journalctl -u ssh --since '${2:-5 minutes ago}' --no-pager | grep -oP 'from \K[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+' | sort | uniq -c | sort -rn | head -5" || echo "none"
+    ;;
+  help)
+    echo "Usage: security-scan {ports|ssh-config|services|disk|fail2ban|recent-attacks|attack-count|top-ips}"
+    echo "All commands run as the 'scanner' user with limited privileges."
+    ;;
+  *)
+    echo "Unknown command: $1"
+    echo "Run 'security-scan help' for usage."
+    exit 1
+    ;;
+esac
